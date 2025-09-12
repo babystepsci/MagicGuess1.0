@@ -59,7 +59,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           {/* Audio Settings */}
           <div>
             <h3 className="text-white text-lg font-semibold mb-4 flex items-center">
-              {settings.soundEnabled ? <Volume2 className="mr-2" size={20} /> : <VolumeX className="mr-2" size={20} />}
+              {soundEnabled ? <Volume2 className="mr-2" size={20} /> : <VolumeX className="mr-2" size={20} />}
               Audio
             </h3>
             <div className="space-y-3">
