@@ -214,6 +214,7 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
                   Make Guess
                 </Button>
               </form>
+            )}
 
 
             {/* Game Over State */}
