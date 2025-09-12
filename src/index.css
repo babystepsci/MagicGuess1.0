@@ -86,7 +86,7 @@
   }
 
   .header-panel {
-    position: absolute;
+    position: fixed;
     top: 10px;
     left: 50%;
     transform: translateX(-50%);
@@ -97,7 +97,7 @@
 
   .timer-panel {
     font-size: 1.2em;
-    position: absolute;
+    position: fixed;
     top: 120px; /* Below header */
     left: 50%;
     transform: translateX(-50%);
