@@ -57,3 +57,220 @@
   filter: blur(0.5px);
   backdrop-filter: blur(1px);
 }
+
+/* --- MOBILE OPTIMIZATION CSS --- */
+
+/* Base layout for game container */
+.game-container {
+  height: 100vh; /* Fallback for browsers not supporting --vh */
+  height: calc(var(--vh, 1vh) * 100); /* Use custom vh for accurate mobile height */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Prevent scrolling on the main container */
+}
+
+/* Main content area within game-container */
+.game-content-area {
+  flex-grow: 1; /* Allow it to take available space */
+  justify-content: flex-start; /* Align content to the top on mobile */
+  padding-bottom: 10px; /* Small padding at the bottom of the scrollable area */
+  width: 100%; /* Ensure it takes full width */
+  box-sizing: border-box; /* Include padding in width */
+}
+
+/* Mobile-specific positioning for panels */
+@media (max-width: 768px) {
+  .game-container.keyboard-open {
+    /* The --vh variable and flex layout should handle the height adjustment */
+    /* No specific height needed here, flex-grow on content area will adapt */
+  }
+
+  .header-panel {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 400px;
+    z-index: 20;
+  }
+
+  .timer-panel {
+    font-size: 1.2em;
+    position: absolute;
+    top: 120px; /* Below header */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20; /* Ensure it's above background but below feedback */
+  }
+
+  .history-panel {
+    position: fixed; /* Use fixed for history */
+    top: 10px;
+    right: 10px;
+    width: 40%;
+    max-height: 200px;
+    z-index: 1000;
+    background: rgba(0,0,0,0.7); /* Darker background for readability */
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    font-size: 12px; /* More compact */
+    padding: 8px;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .history-panel .history-header {
+    font-weight: bold;
+    margin-bottom: 4px;
+    text-align: center;
+    font-size: 1em;
+  }
+
+  .history-panel .attempt-compact {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255,255,255,0.1);
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+
+  .input-panel {
+    position: fixed;
+    bottom: 10px; /* Adjust this based on actual keyboard height */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 400px;
+    z-index: 1000;
+    padding-bottom: 0;
+  }
+
+  .input-field-mobile {
+    font-size: 1.5em;
+    padding: 15px;
+    width: 100%;
+    border-radius: 25px;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255,255,255,0.2);
+    color: white;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+  }
+
+  .input-field-mobile:focus {
+    border-color: rgba(255,255,255,0.4);
+    outline: none;
+    box-shadow: 0 0 20px rgba(255,255,255,0.2);
+  }
+
+  .input-field-mobile::placeholder {
+    color: rgba(255,255,255,0.6);
+  }
+
+  .game-over-panel, .range-indicator-panel {
+    /* These panels will be pushed up by the fixed input panel */
+    /* They should be part of the normal flow, but might need margin-bottom to avoid overlap */
+    margin-bottom: 200px; /* Example: enough space for keyboard + input */
+    width: 90%;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Hide desktop history on mobile */
+  .desktop-history-panel {
+    display: none;
+  }
+}
+
+/* Adjustments for larger screens (desktop/tablet) */
+@media (min-width: 769px) {
+  .game-container {
+    height: auto; /* Allow content to define height */
+    min-height: 100vh; /* Ensure it takes full viewport height */
+    padding-bottom: 0; /* Remove mobile specific padding */
+  }
+
+  .game-content-area {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    max-width: 56rem; /* max-w-4xl */
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+
+  /* Reset mobile-specific positioning and display for all panels */
+  .header-panel, .timer-panel, .input-panel, .game-over-panel, .range-indicator-panel {
+    position: static;
+    transform: none;
+    width: auto;
+    max-width: none;
+    padding-bottom: 0;
+    background: none;
+    backdrop-filter: none;
+    border: none;
+    color: inherit;
+    font-size: inherit;
+    display: block; /* Ensure they are visible */
+    margin: 0; /* Reset margins */
+  }
+
+  /* Hide mobile history on desktop */
+  .history-panel {
+    display: none;
+  }
+
+  /* Show desktop history on desktop */
+  .desktop-history-panel {
+    display: block;
+  }
+
+  /* Apply original order for desktop grid */
+  .timer-panel { /* This was lg:order-1 */
+    grid-column: span 1;
+    order: 1;
+  }
+  .input-panel { /* This was lg:order-2 */
+    grid-column: span 1;
+    order: 2;
+  }
+  .desktop-history-panel { /* This was lg:order-3 */
+    grid-column: span 1;
+    order: 3;
+  }
+
+  /* Game Over and Range Indicator panels were outside the grid, centered */
+  .game-over-panel, .range-indicator-panel {
+    grid-column: 1 / -1; /* Span all columns */
+    text-align: center;
+    margin-top: 2rem; /* mt-8 */
+    max-width: 42rem; /* max-w-2xl */
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Reset input field styles for desktop */
+  .input-field-mobile {
+    font-size: 2rem;
+    padding: 1.5rem;
+    width: 100%;
+    border-radius: 1rem;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255,255,255,0.2);
+    color: white;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+  }
+}

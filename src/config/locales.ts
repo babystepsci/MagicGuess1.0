@@ -90,6 +90,8 @@ export const locales = {
     selectDifficultyToStart: 'Sélectionnez une difficulté pour commencer !',
     roundWon: 'Round Gagné',
     totalXp: 'XP Total',
+    roundsWonShort: 'Rounds',
+    totalXpEarned: 'XP Total Gagné',
     
     // Profil
     profile: {
