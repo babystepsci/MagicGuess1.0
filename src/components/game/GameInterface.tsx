@@ -155,17 +155,17 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
             </div>
           )}
         </div>
-
         {/* Timer Section (Mobile specific positioning via CSS) */}
-        <div className="flex flex-col items-center timer-panel">
-            <h3 className="text-white text-xl font-semibold mb-4">Time Remaining</h3>
-            <CircularTimer
-              timeLeft={gameState.timeLeft} 
-              maxTime={gameState.maxTime}
-              size={150}
-            />
-          </div>
-
+        {/* Range Indicator */}
+        {gameState.gameStatus === 'playing' && lastAttempt && (
+          <div className="mt-8 max-w-2xl mx-auto">
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6">
+              <h4 className="text-white text-center mb-4">{t.game.yourLastGuess}: <span className="font-bold">{lastAttempt.number}</span></h4>
+              <div className="text-center text-white/80">
+                {lastAttempt.result === 'higher' && t.game.numberIsHigher}
+                {lastAttempt.result === 'lower' && t.game.numberIsLower}
+              </div>
+            </div>
         {/* Attempts History (Mobile specific positioning via CSS) */}
         {window.innerWidth <= 768 && ( // Only show on mobile
           <div className="history-panel">
@@ -256,8 +256,8 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
               </div>
             )}
           </div>
-        </div>
-
+        )}
+      </div>
         {/* Range Indicator */}
         {gameState.gameStatus === 'playing' && lastAttempt && (
           <div className="mt-8 max-w-2xl mx-auto">
