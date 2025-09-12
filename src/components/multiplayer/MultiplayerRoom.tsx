@@ -267,7 +267,7 @@ export function MultiplayerRoom({ onLeave }: MultiplayerRoomProps) {
         ))}
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 py-8">
+      <div className="relative z-10 container mx-auto px-4 py-8 flex-grow overflow-y-auto pb-40 md:pb-8">
         {/* Header - Nouvelle disposition */}
         <div className="sticky top-0 z-20 flex items-center justify-between mb-6 bg-black/30 backdrop-blur-lg rounded-2xl p-4 border border-white/20">
           {/* Gauche - Info joueurs et difficulté */}
@@ -329,7 +329,7 @@ export function MultiplayerRoom({ onLeave }: MultiplayerRoomProps) {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-16 h-[calc(100vh-200px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Players Panel */}
           <div className="lg:col-span-1 lg:order-1 h-full">
             <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20 h-full overflow-y-auto">
@@ -410,7 +410,7 @@ export function MultiplayerRoom({ onLeave }: MultiplayerRoomProps) {
                       disabled={!canStart}
                       icon={Play}
                     >
-                      {canStart ? "Démarrer" : "En attente"}
+                      {canStart ? t.multiplayer.startGame : t.multiplayer.waitingForPlayers}
                     </Button>
                   )}
                 </div>
@@ -461,7 +461,7 @@ export function MultiplayerRoom({ onLeave }: MultiplayerRoomProps) {
                 {/* Timer Section */}
                 <div className="flex flex-col items-center">
                   <h3 className="text-white text-lg font-bold mb-3" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
-                    Temps Restant
+                    {t.game.timeRemaining}
                   </h3>
                   <CircularTimer 
                     timeLeft={turnTimeLeft / 1000} 
@@ -510,10 +510,10 @@ export function MultiplayerRoom({ onLeave }: MultiplayerRoomProps) {
                     <div className="text-center">
                       <div className="text-3xl mb-3">✅</div>
                       <h3 className="text-lg font-bold text-white mb-2" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
-                        Tentative validée !
+                        {t.multiplayer.guessSubmitted}
                       </h3>
                       <p className="text-white/90 text-sm font-semibold" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
-                        En attente des autres joueurs...
+                        {t.multiplayer.waitingForOthers}
                       </p>
                       {currentPlayer.lastGuess !== null && (
                         <div className="mt-3 p-3 bg-black/50 rounded-lg border border-white/30">
@@ -527,10 +527,10 @@ export function MultiplayerRoom({ onLeave }: MultiplayerRoomProps) {
                     <div className="text-center">
                       <div className="text-3xl mb-3">⏳</div>
                       <h3 className="text-lg font-bold text-white mb-2" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
-                        En attente...
+                        {t.multiplayer.waitingForOthers}
                       </h3>
                       <p className="text-white/90 text-sm font-semibold" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
-                        C'est le tour de {activePlayer?.name}
+                        {t.multiplayer.itsTurnOf} {activePlayer?.name}
                       </p>
                     </div>
                   ) : null}
@@ -596,14 +596,14 @@ export function MultiplayerRoom({ onLeave }: MultiplayerRoomProps) {
                     variant="primary"
                     size="md"
                   >
-                    Nouvelle Partie
+                    {t.multiplayer.close}
                   </Button>
                 </div>
               </div>
             ) : (
               <div className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border border-white/40 text-center">
                 <h2 className="text-lg font-bold text-white mb-3" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
-                  Partie en cours...
+                  {t.multiplayer.gameInProgress}
                 </h2>
               </div>
             )}
@@ -614,7 +614,7 @@ export function MultiplayerRoom({ onLeave }: MultiplayerRoomProps) {
           <div className="lg:col-span-1 lg:order-3 h-full">
             <div className="bg-black/40 backdrop-blur-lg rounded-xl p-3 border border-white/40 h-full overflow-y-auto">
               <h3 className="text-white text-sm font-bold mb-2 text-center" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
-                📋 Historique des Tentatives
+                📋 {t.multiplayer.attemptsHistory}
               </h3>
               <div className="space-y-1">
                 {chatMessages
@@ -638,9 +638,9 @@ export function MultiplayerRoom({ onLeave }: MultiplayerRoomProps) {
                           isTooSmall ? 'text-red-300' :
                           isTooLarge ? 'text-blue-300' : 'text-white'
                         }`} style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.9)' }}>
-                          {isCorrect ? '🎉 Victoire !' :
-                           isTooSmall ? '↗️ Trop petit' :
-                           isTooLarge ? '↙️ Trop grand' : msg.message}
+                          {isCorrect ? `🎉 ${t.multiplayer.victory}` :
+                           isTooSmall ? `↗️ ${t.multiplayer.tooSmall}` :
+                           isTooLarge ? `↙️ ${t.multiplayer.tooBig}` : msg.message}
                         </span>
                       </div>
                     );

@@ -304,7 +304,7 @@ function AppContent() {
 }
 
 function App() {
-  return (
+  return ( // Added flex flex-col to the root div for better mobile layout management
     <LocaleProvider>
       <AudioProvider>
         <AuthProvider>
