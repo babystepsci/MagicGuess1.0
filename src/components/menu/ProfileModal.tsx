@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Trophy, Target, Zap, Award, TrendingUp } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { useLocale } from '../../hooks/useLocale';
 import { UserService } from '../../services/userService';
 
 interface ProfileModalProps {
@@ -10,18 +11,13 @@ interface ProfileModalProps {
 
 export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
   const { user } = useAuth();
+  const { t } = useLocale();
   const [leaderboard, setLeaderboard] = React.useState<any[]>([]);
-
-  if (!isOpen || !user) return null;
-
-  const badges = [
-    { name: 'First Win', icon: Trophy, earned: true, color: 'text-yellow-400' },
-    { name: 'Speed Demon', icon: Zap, earned: user.stats.avgReactionTime < 5, color: 'text-blue-400' },
-    { name: 'Precision Master', icon: Target, earned: user.stats.winRate > 0.8, color: 'text-green-400' },
-    { name: 'Streak Legend', icon: TrendingUp, earned: user.stats.bestStreak > 10, color: 'text-purple-400' },
-  ];
+  const [campaignStats, setCampaignStats] = React.useState<any>(null);
 
   React.useEffect(() => {
+    if (!isOpen || !user) return;
+
     const fetchLeaderboard = async () => {
       try {
         const leaders = await UserService.getLeaderboard(10);
@@ -31,7 +27,16 @@ export function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
       }
     };
     fetchLeaderboard();
-  }, []);
+  }, [isOpen, user]);
+
+  if (!isOpen || !user) return null;
+
+  const badges = [
+    { name: 'First Win', icon: Trophy, earned: true, color: 'text-yellow-400' },
+    { name: 'Speed Demon', icon: Zap, earned: user.stats.avgReactionTime < 5, color: 'text-blue-400' },
+    { name: 'Precision Master', icon: Target, earned: user.stats.winRate > 0.8, color: 'text-green-400' },
+    { name: 'Streak Legend', icon: TrendingUp, earned: user.stats.bestStreak > 10, color: 'text-purple-400' },
+  ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
