@@ -44,6 +44,7 @@ export const locales = {
       multiplayerMode: 'Multijoueur',
       soloDescription: 'Jouez seul contre l\'ordinateur',
       multiplayerDescription: 'Affrontez d\'autres joueurs en ligne',
+      mode: 'Mode',
       backToModeSelection: 'Retour à la Sélection de Mode',
       chooseChallenge: 'Choisissez Votre Défi',
       selectDifficulty: 'Sélectionnez votre niveau de difficulté et testez vos compétences',
@@ -82,6 +83,13 @@ export const locales = {
       tooHigh: 'Trop haut ! Descendez',
       perfect: 'Parfait ! Vous avez trouvé !',
     },
+    sessionEnded: 'Session Terminée !',
+    sessionSummary: 'Résumé de la Session',
+    totalAttempts: 'Tentatives Totales',
+    timePlayed: 'Temps Joué',
+    selectDifficultyToStart: 'Sélectionnez une difficulté pour commencer !',
+    roundWon: 'Round Gagné',
+    totalXp: 'XP Total',
     
     // Profil
     profile: {

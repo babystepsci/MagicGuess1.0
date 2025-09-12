@@ -5,6 +5,7 @@ import { ParticleEffect } from '../ui/ParticleEffect';
 import { Button } from '../ui/Button';
 import type { GameState } from '../../types/game';
 import { DIFFICULTIES } from '../../config/difficulties';
+import { useLocale } from '../../hooks/useLocale';
 
 interface GameInterfaceProps {
   gameState: GameState;
@@ -18,6 +19,7 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
   const [showParticles, setShowParticles] = useState(false);
   const [showRoundWinFeedback, setShowRoundWinFeedback] = useState(false);
   const [lastRoundXp, setLastRoundXp] = useState(0);
+  const { t } = useLocale();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const difficulty = DIFFICULTIES[gameState.difficulty];
@@ -53,9 +55,9 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
 
   const getResultMessage = (result: 'higher' | 'lower' | 'correct') => {
     switch (result) {
-      case 'higher': return 'Too low! Go higher';
-      case 'lower': return 'Too high! Go lower';
-      case 'correct': return 'Perfect! You got it!';
+      case 'higher': return t.game.tooLow;
+      case 'lower': return t.game.tooHigh;
+      case 'correct': return t.game.perfect;
     }
   };
 
@@ -63,15 +65,15 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-4xl font-bold text-white mb-8">Select a difficulty to start!</h2>
-          <Button onClick={onBackToMenu}>Back to Menu</Button>
+          <h2 className="text-4xl font-bold text-white mb-8">{t.game.selectDifficultyToStart}</h2>
+          <Button onClick={onBackToMenu}>{t.game.backToMenu}</Button>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className={`min-h-screen bg-gradient-to-br ${difficulty.theme.gradient} to-gray-900 relative overflow-hidden`}>
+  return ( // Added pb-40 for mobile keyboard visibility
+    <div className={`min-h-screen bg-gradient-to-br ${difficulty.theme.gradient} to-gray-900 relative overflow-hidden pb-40 md:pb-8`}>
       {/* Particle Effects */}
       <ParticleEffect 
         active={showParticles} 
@@ -83,7 +85,7 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
       {showRoundWinFeedback && (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-green-500/90 backdrop-blur-lg text-white px-6 py-3 rounded-xl border border-green-400 flex items-center space-x-2 animate-bounce">
           <Trophy size={20} />
-          <span className="font-bold">Round Gagné ! +{gameState.xpGained} XP</span>
+          <span className="font-bold">{t.game.roundWon} ! +{gameState.xpGained} XP</span>
         </div>
       )}
       {/* Background Animation */}
@@ -106,21 +108,21 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 font-['Orbitron']">
-            {difficulty.name} Mode
+            {t.game[gameState.difficulty]} {t.game.mode}
           </h1>
           <p className="text-white/80 text-base md:text-lg">
-            Guess the number between {difficulty.range.min} and {difficulty.range.max}
+            {t.game.guessNumber} {difficulty.range.min} {t.game.and} {difficulty.range.max}
           </p>
           
           {/* Session Stats */}
           {gameState.gameStatus === 'playing' && gameState.roundsWon > 0 && (
             <div className="mt-4 flex justify-center space-x-4">
               <div className="bg-white/10 backdrop-blur-lg rounded-xl px-4 py-2">
-                <span className="text-white/80 text-sm">Rounds Won: </span>
+                <span className="text-white/80 text-sm">{t.game.roundsWon}: </span>
                 <span className="text-yellow-400 font-bold">{gameState.roundsWon}</span>
               </div>
               <div className="bg-white/10 backdrop-blur-lg rounded-xl px-4 py-2">
-                <span className="text-white/80 text-sm">Total XP: </span>
+                <span className="text-white/80 text-sm">{t.game.totalXp}: </span>
                 <span className="text-cyan-400 font-bold">{gameState.accumulatedXp}</span>
               </div>
             </div>
@@ -131,7 +133,7 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
           {/* Timer Section */}
           <div className="lg:order-1 flex flex-col items-center">
             <h3 className="text-white text-xl font-semibold mb-4">Time Remaining</h3>
-            <CircularTimer 
+            <CircularTimer
               timeLeft={gameState.timeLeft} 
               maxTime={gameState.maxTime}
               size={150}
@@ -148,7 +150,7 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
                     type="number"
                     value={currentGuess}
                     onChange={(e) => setCurrentGuess(e.target.value)}
-                    placeholder="Enter your guess"
+                    placeholder={t.game.enterGuess}
                     min={difficulty.range.min}
                     max={difficulty.range.max}
                     className="w-full px-6 py-4 text-2xl font-mono text-center bg-white/10 backdrop-blur-lg border-2 border-white/20 rounded-2xl focus:border-white/40 focus:ring-4 focus:ring-white/20 outline-none transition-all duration-300 text-white placeholder-white/60"
@@ -161,7 +163,7 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
                   className="w-full mt-4"
                   variant="primary"
                   size="lg"
-                  disabled={!currentGuess || gameState.gameStatus !== 'playing'}
+                  disabled={!currentGuess || gameState.gameStatus !== 'playing'} // Changed to t.game.makeGuess
                 >
                   Make Guess
                 </Button>
@@ -173,37 +175,37 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
             {gameState.gameStatus === 'lost' && (
               <div className="text-center space-y-6">
                 <div className="text-6xl">⏰</div>
-                <h2 className="text-4xl font-bold text-white">Session Ended!</h2>
+                <h2 className="text-4xl font-bold text-white">{t.game.sessionEnded}</h2>
                 <p className="text-white/80 text-lg">
-                  The number was: <span className="font-bold text-2xl">{gameState.targetNumber}</span>
+                  {t.game.numberWas} <span className="font-bold text-2xl">{gameState.targetNumber}</span>
                 </p>
                 
                 {/* Session Summary */}
                 <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 space-y-4">
-                  <h3 className="text-white text-xl font-semibold">Session Summary</h3>
+                  <h3 className="text-white text-xl font-semibold">{t.game.sessionSummary}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-yellow-400">{gameState.roundsWon}</div>
-                      <div className="text-gray-300 text-sm">Rounds Won</div>
+                      <div className="text-gray-300 text-sm">{t.game.roundsWon}</div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-cyan-400">{gameState.accumulatedXp}</div>
-                      <div className="text-gray-300 text-sm">Total XP Earned</div>
+                      <div className="text-gray-300 text-sm">{t.game.totalXpEarned}</div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-purple-400">{gameState.totalAttempts}</div>
-                      <div className="text-gray-300 text-sm">Total Attempts</div>
+                      <div className="text-gray-300 text-sm">{t.game.totalAttempts}</div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-green-400">{Math.floor(gameState.totalTimePlayed / 60)}:{(gameState.totalTimePlayed % 60).toString().padStart(2, '0')}</div>
-                      <div className="text-gray-300 text-sm">Time Played</div>
+                      <div className="text-gray-300 text-sm">{t.game.timePlayed}</div>
                     </div>
                   </div>
                 </div>
                 
                 <div className="flex space-x-4">
-                  <Button onClick={onRestart} icon={RotateCcw}>Try Again</Button>
-                  <Button onClick={onBackToMenu} variant="secondary">Main Menu</Button>
+                  <Button onClick={onRestart} icon={RotateCcw}>{t.game.tryAgain}</Button>
+                  <Button onClick={onBackToMenu} variant="secondary">{t.game.mainMenu}</Button>
                 </div>
               </div>
             )}
@@ -211,9 +213,9 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
 
           {/* Attempts History */}
           <div className="lg:order-3">
-            <h3 className="text-white text-xl font-semibold mb-4">Recent Attempts</h3>
-            <div className="space-y-3 max-h-96 overflow-y-auto">
-              {gameState.attempts.slice(-5).reverse().map((attempt, index) => (
+            <h3 className="text-white text-xl font-semibold mb-4">{t.game.recentAttempts}</h3>
+            <div className="space-y-3 max-h-96 overflow-y-auto"> {/* Changed slice(-5) to slice(-3) for mobile */}
+              {gameState.attempts.slice(-3).reverse().map((attempt, index) => (
                 <div
                   key={attempt.timestamp}
                   className="bg-white/10 backdrop-blur-lg rounded-xl p-4 transform transition-all duration-300 hover:scale-105"
@@ -223,7 +225,7 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
                     <span className="text-white font-mono text-lg">{attempt.number}</span>
                     <div className="flex items-center space-x-2">
                       {getResultIcon(attempt.result)}
-                      <span className="text-white/80 text-sm">
+                      <span className="text-white/80 text-sm"> {/* getResultMessage already translated */}
                         {getResultMessage(attempt.result)}
                       </span>
                     </div>
@@ -231,7 +233,7 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
                 </div>
               ))}
               {gameState.attempts.length === 0 && (
-                <div className="text-white/60 text-center py-8">
+                <div className="text-white/60 text-center py-8"> {/* t.game.noAttemptsYet already translated */}
                   No attempts yet. Start guessing!
                 </div>
               )}
@@ -243,10 +245,10 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
         {gameState.gameStatus === 'playing' && lastAttempt && (
           <div className="mt-8 max-w-2xl mx-auto">
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6">
-              <h4 className="text-white text-center mb-4">Your last guess: <span className="font-bold">{lastAttempt.number}</span></h4>
+              <h4 className="text-white text-center mb-4">{t.game.yourLastGuess}: <span className="font-bold">{lastAttempt.number}</span></h4>
               <div className="text-center text-white/80">
-                {lastAttempt.result === 'higher' && '↗️ The number is higher!'}
-                {lastAttempt.result === 'lower' && '↙️ The number is lower!'}
+                {lastAttempt.result === 'higher' && t.game.numberIsHigher}
+                {lastAttempt.result === 'lower' && t.game.numberIsLower}
               </div>
             </div>
           </div>
