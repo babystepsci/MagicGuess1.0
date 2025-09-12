@@ -16,18 +16,23 @@ interface GameInterfaceProps {
 export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: GameInterfaceProps) {
   const [currentGuess, setCurrentGuess] = useState('');
   const [showParticles, setShowParticles] = useState(false);
+  const [showRoundWinFeedback, setShowRoundWinFeedback] = useState(false);
+  const [lastRoundXp, setLastRoundXp] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const difficulty = DIFFICULTIES[gameState.difficulty];
   const lastAttempt = gameState.attempts[gameState.attempts.length - 1];
 
   useEffect(() => {
-    if (gameState.gameStatus === 'won') {
+    // Detect when a round is won (XP gained but still playing)
+    if (gameState.gameStatus === 'playing' && gameState.xpGained > 0 && gameState.xpGained !== lastRoundXp) {
       setShowParticles(true);
+      setShowRoundWinFeedback(true);
+      setLastRoundXp(gameState.xpGained);
       setTimeout(() => setShowParticles(false), 3000);
-    } else if (gameState.gameStatus === 'lost') {
+      setTimeout(() => setShowRoundWinFeedback(false), 2000);
     }
-  }, [gameState.gameStatus]);
+  }, [gameState.gameStatus, gameState.xpGained, lastRoundXp]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,6 +79,13 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
         particleCount={30}
       />
 
+      {/* Round Win Feedback */}
+      {showRoundWinFeedback && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-green-500/90 backdrop-blur-lg text-white px-6 py-3 rounded-xl border border-green-400 flex items-center space-x-2 animate-bounce">
+          <Trophy size={20} />
+          <span className="font-bold">Round Gagné ! +{gameState.xpGained} XP</span>
+        </div>
+      )}
       {/* Background Animation */}
       <div className="absolute inset-0">
         {[...Array(20)].map((_, i) => (
@@ -99,6 +111,20 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
           <p className="text-white/80 text-base md:text-lg">
             Guess the number between {difficulty.range.min} and {difficulty.range.max}
           </p>
+          
+          {/* Session Stats */}
+          {gameState.gameStatus === 'playing' && gameState.roundsWon > 0 && (
+            <div className="mt-4 flex justify-center space-x-4">
+              <div className="bg-white/10 backdrop-blur-lg rounded-xl px-4 py-2">
+                <span className="text-white/80 text-sm">Rounds Won: </span>
+                <span className="text-yellow-400 font-bold">{gameState.roundsWon}</span>
+              </div>
+              <div className="bg-white/10 backdrop-blur-lg rounded-xl px-4 py-2">
+                <span className="text-white/80 text-sm">Total XP: </span>
+                <span className="text-cyan-400 font-bold">{gameState.accumulatedXp}</span>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -142,35 +168,39 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
               </form>
             )}
 
-            {/* Game Over States */}
-            {gameState.gameStatus === 'won' && (
-              <div className="text-center space-y-6">
-                <div className="text-6xl">🎉</div>
-                <h2 className="text-4xl font-bold text-white">Congratulations!</h2>
-                <p className="text-white/80 text-lg">
-                  You guessed it in {gameState.attempts.length} attempts!
-                </p>
-                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6">
-                  <div className="flex items-center justify-center space-x-2 mb-2">
-                    <Trophy className="text-yellow-400" size={24} />
-                    <span className="text-white font-semibold">XP Earned</span>
-                  </div>
-                  <div className="text-3xl font-bold text-yellow-400">+{gameState.xpGained}</div>
-                </div>
-                <div className="flex space-x-4">
-                  <Button onClick={onRestart} icon={RotateCcw}>Play Again</Button>
-                  <Button onClick={onBackToMenu} variant="secondary">Main Menu</Button>
-                </div>
-              </div>
-            )}
 
+            {/* Game Over State */}
             {gameState.gameStatus === 'lost' && (
               <div className="text-center space-y-6">
                 <div className="text-6xl">⏰</div>
-                <h2 className="text-4xl font-bold text-white">Time's Up!</h2>
+                <h2 className="text-4xl font-bold text-white">Session Ended!</h2>
                 <p className="text-white/80 text-lg">
                   The number was: <span className="font-bold text-2xl">{gameState.targetNumber}</span>
                 </p>
+                
+                {/* Session Summary */}
+                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 space-y-4">
+                  <h3 className="text-white text-xl font-semibold">Session Summary</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-yellow-400">{gameState.roundsWon}</div>
+                      <div className="text-gray-300 text-sm">Rounds Won</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-cyan-400">{gameState.accumulatedXp}</div>
+                      <div className="text-gray-300 text-sm">Total XP Earned</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-400">{gameState.totalAttempts}</div>
+                      <div className="text-gray-300 text-sm">Total Attempts</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-400">{Math.floor(gameState.totalTimePlayed / 60)}:{(gameState.totalTimePlayed % 60).toString().padStart(2, '0')}</div>
+                      <div className="text-gray-300 text-sm">Time Played</div>
+                    </div>
+                  </div>
+                </div>
+                
                 <div className="flex space-x-4">
                   <Button onClick={onRestart} icon={RotateCcw}>Try Again</Button>
                   <Button onClick={onBackToMenu} variant="secondary">Main Menu</Button>

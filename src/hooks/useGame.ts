@@ -16,6 +16,10 @@ export function useGame() {
     gameStatus: 'waiting',
     score: 0,
     xpGained: 0,
+    accumulatedXp: 0,
+    roundsWon: 0,
+    totalAttempts: 0,
+    totalTimePlayed: 0,
   });
 
   const generateRandomNumber = (min: number, max: number) => {
@@ -30,7 +34,7 @@ export function useGame() {
     return Math.floor((baseXP + timeBonus) * difficultyMultiplier);
   };
 
-  const saveGameResult = async (won: boolean, attempts: number, timeUsed: number, xpGained: number) => {
+  const saveGameSessionResult = async (totalXpGained: number, totalRoundsWon: number, finalAttempts: number, finalTimePlayed: number) => {
     if (!user) return;
 
     try {
@@ -38,19 +42,19 @@ export function useGame() {
       await UserService.saveGame(user.id, {
         difficulty: gameState.difficulty,
         targetNumber: gameState.targetNumber,
-        attempts,
-        timeUsed,
-        won,
-        xpGained,
+        attempts: finalAttempts,
+        timeUsed: finalTimePlayed,
+        won: totalRoundsWon > 0,
+        xpGained: totalXpGained,
       });
 
       // Mettre à jour les statistiques utilisateur
       await UserService.updateGameStats(user.id, {
-        won,
+        won: totalRoundsWon > 0,
         difficulty: gameState.difficulty,
-        attempts,
-        timeUsed,
-        xpGained,
+        attempts: finalAttempts,
+        timeUsed: finalTimePlayed,
+        xpGained: totalXpGained,
       });
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
@@ -71,6 +75,10 @@ export function useGame() {
       gameStatus: 'playing',
       score: 0,
       xpGained: 0,
+      accumulatedXp: 0,
+      roundsWon: 0,
+      totalAttempts: 0,
+      totalTimePlayed: 0,
     });
   }, []);
 
@@ -90,16 +98,23 @@ export function useGame() {
     const newAttempts = [...gameState.attempts, newAttempt];
     
     if (guess === gameState.targetNumber) {
+      // Round gagné - continuer avec un nouveau nombre
       const xpGained = calculateXP(newAttempts.length, gameState.timeLeft, gameState.difficulty);
-      const timeUsed = gameState.maxTime - gameState.timeLeft;
+      const roundTimeUsed = gameState.maxTime - gameState.timeLeft;
+      const config = DIFFICULTIES[gameState.difficulty];
+      const newTargetNumber = generateRandomNumber(config.range.min, config.range.max);
       
-      saveGameResult(true, newAttempts.length, timeUsed, xpGained);
       setGameState(prev => ({
         ...prev,
-        attempts: newAttempts,
-        gameStatus: 'won',
-        score: xpGained,
-        xpGained,
+        targetNumber: newTargetNumber,
+        timeLeft: prev.maxTime, // Reset timer
+        attempts: [], // Reset attempts for new round
+        accumulatedXp: prev.accumulatedXp + xpGained,
+        roundsWon: prev.roundsWon + 1,
+        totalAttempts: prev.totalAttempts + newAttempts.length,
+        totalTimePlayed: prev.totalTimePlayed + roundTimeUsed,
+        score: prev.accumulatedXp + xpGained, // Show accumulated XP as score
+        xpGained: xpGained, // XP for this round only
       }));
     } else {
       setGameState(prev => ({
@@ -120,6 +135,10 @@ export function useGame() {
       gameStatus: 'waiting',
       score: 0,
       xpGained: 0,
+      accumulatedXp: 0,
+      roundsWon: 0,
+      totalAttempts: 0,
+      totalTimePlayed: 0,
     });
   }, []);
 
@@ -130,15 +149,18 @@ export function useGame() {
         setGameState(prev => {
           const newTimeLeft = prev.timeLeft - 1;
           if (newTimeLeft <= 0) {
-            // Sauvegarder la défaite
+            // Temps écoulé - fin de session
             if (user) {
-              const timeUsed = prev.maxTime;
-              saveGameResult(false, prev.attempts.length, timeUsed, 0);
+              const finalTimePlayed = prev.totalTimePlayed + (prev.maxTime - prev.timeLeft);
+              const finalAttempts = prev.totalAttempts + prev.attempts.length;
+              saveGameSessionResult(prev.accumulatedXp, prev.roundsWon, finalAttempts, finalTimePlayed);
             }
             return {
               ...prev,
               timeLeft: 0,
               gameStatus: 'lost',
+              totalTimePlayed: prev.totalTimePlayed + (prev.maxTime - prev.timeLeft),
+              totalAttempts: prev.totalAttempts + prev.attempts.length,
             };
           }
           return {

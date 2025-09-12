@@ -33,6 +33,11 @@ export interface GameState {
   gameStatus: 'waiting' | 'playing' | 'won' | 'lost';
   score: number;
   xpGained: number;
+  // Continuous mode properties
+  accumulatedXp: number;
+  roundsWon: number;
+  totalAttempts: number;
+  totalTimePlayed: number;
 }
 
 export interface Attempt {
