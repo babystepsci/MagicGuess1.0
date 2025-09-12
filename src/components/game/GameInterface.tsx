@@ -14,6 +14,19 @@ interface GameInterfaceProps {
   onBackToMenu: () => void;
 }
 
+// Custom hook for viewport height
+const useViewportHeight = () => {
+  useEffect(() => {
+    const updateVh = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+    updateVh(); // Set initially
+    window.addEventListener('resize', updateVh);
+    return () => window.removeEventListener('resize', updateVh);
+  }, []);
+};
+
 export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: GameInterfaceProps) {
   const [currentGuess, setCurrentGuess] = useState('');
   const [showParticles, setShowParticles] = useState(false);
@@ -21,9 +34,23 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
   const [lastRoundXp, setLastRoundXp] = useState(0);
   const { t } = useLocale();
   const inputRef = useRef<HTMLInputElement>(null);
+  const [keyboardVisible, setKeyboardVisible] = useState(false); // New state for keyboard
 
   const difficulty = DIFFICULTIES[gameState.difficulty];
   const lastAttempt = gameState.attempts[gameState.attempts.length - 1];
+
+  // Call the custom hook
+  useViewportHeight();
+
+  // Keyboard detection effect
+  useEffect(() => {
+    const handleResize = () => {
+      const isKeyboardOpen = window.innerHeight < window.screen.height * 0.75;
+      setKeyboardVisible(isKeyboardOpen);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     // Detect when a round is won (XP gained but still playing)
@@ -73,7 +100,7 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
   }
 
   return ( // Added pb-40 for mobile keyboard visibility
-    <div className={`min-h-screen bg-gradient-to-br ${difficulty.theme.gradient} to-gray-900 relative overflow-hidden pb-40 md:pb-8`}>
+    <div className={`game-container ${keyboardVisible ? 'keyboard-open' : ''} bg-gradient-to-br ${difficulty.theme.gradient} to-gray-900 relative`}>
       {/* Particle Effects */}
       <ParticleEffect 
         active={showParticles} 
@@ -104,13 +131,13 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
         ))}
       </div>
 
-      <div className="relative z-10 container mx-auto px-4 py-8">
+      <div className="relative z-10 flex flex-col items-center justify-start h-full p-4 game-content-area">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 font-['Orbitron']">
+        <div className="text-center mb-4 header-panel">
+          <h1 className="text-3xl md:text-5xl font-bold text-white mb-2 font-['Orbitron']">
             {t.game[gameState.difficulty]} {t.game.mode}
           </h1>
-          <p className="text-white/80 text-base md:text-lg">
+          <p className="text-white/80 text-base md:text-lg mb-2">
             {t.game.guessNumber} {difficulty.range.min} {t.game.and} {difficulty.range.max}
           </p>
           
@@ -118,10 +145,10 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
           {gameState.gameStatus === 'playing' && gameState.roundsWon > 0 && (
             <div className="mt-4 flex justify-center space-x-4">
               <div className="bg-white/10 backdrop-blur-lg rounded-xl px-4 py-2">
-                <span className="text-white/80 text-sm">{t.game.roundsWon}: </span>
+                <span className="text-white/80 text-sm">{t.game.roundsWonShort}: </span>
                 <span className="text-yellow-400 font-bold">{gameState.roundsWon}</span>
               </div>
-              <div className="bg-white/10 backdrop-blur-lg rounded-xl px-4 py-2">
+              <div className="bg-white/10 backdrop-blur-lg rounded-xl px-4 py-2 ml-2">
                 <span className="text-white/80 text-sm">{t.game.totalXp}: </span>
                 <span className="text-cyan-400 font-bold">{gameState.accumulatedXp}</span>
               </div>
@@ -129,9 +156,8 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
           )}
         </div>
 
-        <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Timer Section */}
-          <div className="lg:order-1 flex flex-col items-center">
+        {/* Timer Section (Mobile specific positioning via CSS) */}
+        <div className="flex flex-col items-center timer-panel">
             <h3 className="text-white text-xl font-semibold mb-4">Time Remaining</h3>
             <CircularTimer
               timeLeft={gameState.timeLeft} 
@@ -140,9 +166,29 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
             />
           </div>
 
-          {/* Main Game Area */}
-          <div className="lg:order-2 flex flex-col items-center space-y-6">
-            {gameState.gameStatus === 'playing' && (
+        {/* Attempts History (Mobile specific positioning via CSS) */}
+        {window.innerWidth <= 768 && ( // Only show on mobile
+          <div className="history-panel">
+            <div className="history-header">📋 {t.game.recentAttempts}</div>
+            {gameState.attempts.slice(-2).reverse().map((attempt, index) => (
+              <div key={attempt.timestamp} className="attempt-compact">
+                <span className="font-mono">{attempt.number}</span>
+                <div className="flex items-center space-x-1">
+                  {getResultIcon(attempt.result)}
+                  <span className="text-xs">{getResultMessage(attempt.result)}</span>
+                </div>
+              </div>
+            ))}
+            {gameState.attempts.length === 0 && (
+              <div className="text-gray-400 text-center text-xs py-2">
+                {t.game.noAttemptsYet}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Main Game Area / Input (Mobile specific positioning via CSS) */}
+        {gameState.gameStatus === 'playing' && (
               <form onSubmit={handleSubmit} className="w-full max-w-sm">
                 <div className="relative">
                   <input
@@ -153,7 +199,7 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
                     placeholder={t.game.enterGuess}
                     min={difficulty.range.min}
                     max={difficulty.range.max}
-                    className="w-full px-6 py-4 text-2xl font-mono text-center bg-white/10 backdrop-blur-lg border-2 border-white/20 rounded-2xl focus:border-white/40 focus:ring-4 focus:ring-white/20 outline-none transition-all duration-300 text-white placeholder-white/60"
+                    className="input-field-mobile"
                     autoFocus
                   />
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent rounded-2xl pointer-events-none" />
@@ -162,13 +208,12 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
                   type="submit"
                   className="w-full mt-4"
                   variant="primary"
-                  size="lg"
-                  disabled={!currentGuess || gameState.gameStatus !== 'playing'} // Changed to t.game.makeGuess
+                  size="lg" // Changed to t.game.makeGuess
+                  disabled={!currentGuess || gameState.gameStatus !== 'playing'}
                 >
                   Make Guess
                 </Button>
               </form>
-            )}
 
 
             {/* Game Over State */}
@@ -209,35 +254,6 @@ export function GameInterface({ gameState, onGuess, onRestart, onBackToMenu }: G
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Attempts History */}
-          <div className="lg:order-3">
-            <h3 className="text-white text-xl font-semibold mb-4">{t.game.recentAttempts}</h3>
-            <div className="space-y-3 max-h-96 overflow-y-auto"> {/* Changed slice(-5) to slice(-3) for mobile */}
-              {gameState.attempts.slice(-3).reverse().map((attempt, index) => (
-                <div
-                  key={attempt.timestamp}
-                  className="bg-white/10 backdrop-blur-lg rounded-xl p-4 transform transition-all duration-300 hover:scale-105"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-white font-mono text-lg">{attempt.number}</span>
-                    <div className="flex items-center space-x-2">
-                      {getResultIcon(attempt.result)}
-                      <span className="text-white/80 text-sm"> {/* getResultMessage already translated */}
-                        {getResultMessage(attempt.result)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {gameState.attempts.length === 0 && (
-                <div className="text-white/60 text-center py-8"> {/* t.game.noAttemptsYet already translated */}
-                  No attempts yet. Start guessing!
-                </div>
-              )}
-            </div>
           </div>
         </div>
 
